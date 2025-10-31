@@ -1,0 +1,123 @@
+{
+  "0 debug pnpm:scope": {
+    "selected": 1
+  },
+  "1 debug pnpm:package-manifest": {
+    "initial": {},
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608"
+  },
+  "2 debug pnpm:context": {
+    "currentLockfileExists": false,
+    "storeDir": "D:\\.pnpm-store\\v3",
+    "virtualStoreDir": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\.pnpm"
+  },
+  "3 debug pnpm:stage": {
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "stage": "resolution_started"
+  },
+  "4 warn pnpm:install-check": {
+    "message": "Unsupported engine for registry.npmjs.org/create-vite/8.0.2: wanted: {\"node\":\"^20.19.0 || >=22.12.0\"} (current: {\"node\":\"v16.18.0\",\"pnpm\":\"7.3.0\"})",
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608"
+  },
+  "5 debug pnpm:_dependency_resolved": {
+    "resolution": "registry.npmjs.org/create-vite/8.0.2",
+    "wanted": {
+      "dependentId": ".",
+      "name": "create-vite",
+      "rawSpec": "latest"
+    }
+  },
+  "6 debug pnpm:progress": {
+    "packageId": "registry.npmjs.org/create-vite/8.0.2",
+    "requester": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "status": "resolved"
+  },
+  "7 debug pnpm:package-manifest": {
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "updated": {
+      "dependencies": {
+        "create-vite": "^8.0.2"
+      }
+    }
+  },
+  "8 debug pnpm:package-manifest": {
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "updated": {
+      "dependencies": {
+        "create-vite": "^8.0.2"
+      }
+    }
+  },
+  "9 debug pnpm:stage": {
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "stage": "resolution_done"
+  },
+  "10 debug pnpm:stats": {
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "removed": 0
+  },
+  "11 debug pnpm:stage": {
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "stage": "importing_started"
+  },
+  "12 debug pnpm:stats": {
+    "added": 1,
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608"
+  },
+  "13 debug pnpm:fetching-progress": {
+    "attempt": 1,
+    "packageId": "registry.npmjs.org/create-vite/8.0.2",
+    "size": 48890,
+    "status": "started"
+  },
+  "14 debug pnpm:progress": {
+    "packageId": "registry.npmjs.org/create-vite/8.0.2",
+    "requester": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "status": "fetched"
+  },
+  "15 debug pnpm:package-import-method": {
+    "method": "hardlink"
+  },
+  "16 debug pnpm:progress": {
+    "method": "hardlink",
+    "requester": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "status": "imported",
+    "to": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\.pnpm\\create-vite@8.0.2\\node_modules\\create-vite"
+  },
+  "17 debug pnpm:stage": {
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608",
+    "stage": "importing_done"
+  },
+  "18 debug pnpm:link": {
+    "target": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\.pnpm\\create-vite@8.0.2\\node_modules\\create-vite",
+    "link": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\create-vite"
+  },
+  "19 debug pnpm:root": {
+    "added": {
+      "dependencyType": "prod",
+      "id": "registry.npmjs.org/create-vite/8.0.2",
+      "name": "create-vite",
+      "realName": "create-vite",
+      "version": "8.0.2"
+    },
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608"
+  },
+  "20 debug pnpm:summary": {
+    "prefix": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608"
+  },
+  "21 error pnpm": {
+    "shortMessage": "Command failed with exit code 1: D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\.bin\\create-vite.CMD ai-traveller --template react-ts",
+    "command": "D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\.bin\\create-vite.CMD ai-traveller --template react-ts",
+    "escapedCommand": "\"D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\.bin\\create-vite.CMD\" ai-traveller --template react-ts",
+    "exitCode": 1,
+    "failed": true,
+    "timedOut": false,
+    "isCanceled": false,
+    "killed": false,
+    "err": {
+      "name": "pnpm",
+      "message": "Command failed with exit code 1: D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\.bin\\create-vite.CMD ai-traveller --template react-ts",
+      "stack": "pnpm: Command failed with exit code 1: D:\\.pnpm-store\\v3\\tmp\\dlx-18608\\node_modules\\.bin\\create-vite.CMD ai-traveller --template react-ts\n    at makeError (D:\\apps\\nvm\\nvm\\v16.18.0\\node_modules\\pnpm\\dist\\pnpm.cjs:22159:17)\n    at handlePromise (D:\\apps\\nvm\\nvm\\v16.18.0\\node_modules\\pnpm\\dist\\pnpm.cjs:22730:33)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)\n    at async Object.handler (D:\\apps\\nvm\\nvm\\v16.18.0\\node_modules\\pnpm\\dist\\pnpm.cjs:179221:7)\n    at async D:\\apps\\nvm\\nvm\\v16.18.0\\node_modules\\pnpm\\dist\\pnpm.cjs:187855:21\n    at async run (D:\\apps\\nvm\\nvm\\v16.18.0\\node_modules\\pnpm\\dist\\pnpm.cjs:187829:34)\n    at async runPnpm (D:\\apps\\nvm\\nvm\\v16.18.0\\node_modules\\pnpm\\dist\\pnpm.cjs:188047:5)\n    at async D:\\apps\\nvm\\nvm\\v16.18.0\\node_modules\\pnpm\\dist\\pnpm.cjs:188039:7"
+    }
+  }
+}
