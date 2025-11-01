@@ -57,6 +57,26 @@ class AIService {
 
   // 调用大语言模型API生成行程
   async generateItinerary(request: ItineraryRequest): Promise<ItineraryResponse> {
+    // 为了调试高德地图，暂时使用静态数据而不是调用大模型API
+    console.log('大模型API调用已被注释，使用静态数据');
+    
+    // 模拟API调用延迟
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // 返回静态数据用于地图调试
+    return {
+      id: 'itinerary_' + Date.now(),
+      title: `${request.destination}旅行计划`,
+      destination: request.destination,
+      startDate: request.startDate,
+      endDate: request.endDate,
+      budget: request.budget,
+      estimatedCost: Math.round(request.budget * 0.8),
+      itinerary: this.generateStaticItinerary()
+    };
+    
+    /*
+    // 原始的大模型API调用代码（注释掉）
     try {
       // 构造提示词
       const prompt = this.buildPrompt(request);
@@ -73,8 +93,8 @@ class AIService {
             prompt: prompt
           },
           parameters: {
-            // temperature: 0.7,
-            // max_tokens: 2000
+            temperature: 0.7,
+            max_tokens: 2000
           }
         })
       });
@@ -121,6 +141,79 @@ class AIService {
         itinerary: this.generateFallbackItinerary(request)
       };
     }
+    */
+  }
+
+  // 生成静态行程数据用于地图调试
+  private generateStaticItinerary(): ItineraryItem[] {
+    return [
+      {
+        day: 1,
+        date: '2025-11-10',
+        activities: [
+          {
+            time: '09:00',
+            title: '天安门广场',
+            description: '参观世界上最大的城市广场，感受历史的厚重',
+            location: '天安门广场',
+            duration: '2小时',
+            cost: 0
+          },
+          {
+            time: '12:00',
+            title: '故宫博物院',
+            description: '游览明清两代的皇家宫殿，了解中国古代文化',
+            location: '故宫博物院',
+            duration: '3小时',
+            cost: 60
+          }
+        ]
+      },
+      {
+        day: 2,
+        date: '2025-11-11',
+        activities: [
+          {
+            time: '09:30',
+            title: '颐和园',
+            description: '游览皇家园林，欣赏昆明湖和万寿山美景',
+            location: '颐和园',
+            duration: '4小时',
+            cost: 30
+          },
+          {
+            time: '15:00',
+            title: '北京动物园',
+            description: '参观熊猫馆和其他珍稀动物',
+            location: '北京动物园',
+            duration: '2小时',
+            cost: 50
+          }
+        ]
+      },
+      {
+        day: 3,
+        date: '2025-11-12',
+        activities: [
+          {
+            time: '10:00',
+            title: '长城',
+            description: '登临万里长城，体验世界文化遗产的雄伟',
+            location: '慕田峪长城',
+            duration: '4小时',
+            cost: 45
+          },
+          {
+            time: '16:00',
+            title: '798艺术区',
+            description: '欣赏当代艺术作品，感受创意文化氛围',
+            location: '798艺术区',
+            duration: '2小时',
+            cost: 0
+          }
+        ]
+      }
+    ];
   }
 
   // 构造提示词

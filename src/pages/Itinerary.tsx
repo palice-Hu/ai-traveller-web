@@ -105,20 +105,13 @@ const Itinerary: React.FC = () => {
     }
   }, [location.state]);
 
+  // 初始化地图服务
   useEffect(() => {
-    // 初始化地图服务
     const initMap = async () => {
       try {
         const result = await mapService.initialize();
         if (result) {
           setMapInitialized(true);
-          // 渲染第一天的第一个地点的地图
-          if (itinerary?.itinerary[0]?.activities[0]) {
-            setTimeout(() => {
-              const location = itinerary.itinerary[0].activities[0].location;
-              renderMapForLocation(location);
-            }, 500);
-          }
         }
       } catch (error) {
         console.error('地图初始化失败:', error);
@@ -126,10 +119,19 @@ const Itinerary: React.FC = () => {
       }
     };
 
-    if (itinerary) {
-      initMap();
+    initMap();
+  }, []);
+
+  // 当地图初始化完成且有行程数据时，渲染第一天的第一个地点的地图
+  useEffect(() => {
+    if (mapInitialized && itinerary?.itinerary[0]?.activities[0]) {
+      // 确保地图容器已经渲染到DOM中
+      setTimeout(() => {
+        const location = itinerary.itinerary[0].activities[0].location;
+        renderMapForLocation(location);
+      }, 100);
     }
-  }, [itinerary]);
+  }, [mapInitialized, itinerary]);
 
   const renderMapForLocation = async (locationName: string) => {
     if (!mapInitialized) return;

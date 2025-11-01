@@ -1,6 +1,7 @@
 // 地图服务 - 集成高德地图API
 // 需要在.env文件中配置以下环境变量：
 // VITE_AMAP_API_KEY: 高德地图API密钥
+// VITE_AMAP_SECURITY_CODE: 高德地图安全密钥
 
 export interface MapLocation {
   name: string;
@@ -20,13 +21,22 @@ class MapService {
     try {
       console.log('正在初始化地图服务...');
       
-      // 获取API密钥
+      // 获取API密钥和安全密钥
       const apiKey = import.meta.env.VITE_AMAP_API_KEY;
+      const securityCode = import.meta.env.VITE_AMAP_SECURITY_CODE;
+      
       if (!apiKey) {
         console.warn('未找到高德地图API密钥，请在.env文件中设置VITE_AMAP_API_KEY');
         // 使用模拟数据
         this.isInitialized = true;
         return true;
+      }
+      
+      // 设置安全密钥
+      if (securityCode) {
+        (window as any)._AMapSecurityConfig = {
+          securityJsCode: securityCode
+        };
       }
       
       // 动态加载高德地图API
@@ -151,7 +161,7 @@ class MapService {
         try {
           // 创建高德地图实例
           this.mapInstance = new (window as any).AMap.Map(containerId, {
-            zoom: 14,
+            zoom: 12,
             center: [center.longitude, center.latitude]
           });
           
