@@ -12,6 +12,7 @@
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
     "@types/firebase": "^3.2.3",
+    "@types/node-fetch": "^2.6.13",
     "antd": "^5.27.6",
     "firebase": "^12.5.0",
     "react": "^19.1.1",

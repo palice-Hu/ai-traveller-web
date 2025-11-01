@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
+import { Spin, Layout } from 'antd';
 import { auth } from '../services/firebase';
 
 interface User {
@@ -36,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      const { signInWithEmailAndPassword } = await import('firebase/auth') as any;
       const result = await signInWithEmailAndPassword(auth, email, password);
       return result;
     } catch (error) {
@@ -47,7 +48,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { createUserWithEmailAndPassword } = await import('firebase/auth');
+      const { createUserWithEmailAndPassword } = await import('firebase/auth') as any;
       const result = await createUserWithEmailAndPassword(auth, email, password);
       return result;
     } catch (error) {
@@ -58,7 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
-      const { signOut: firebaseSignOut } = await import('firebase/auth');
+      const { signOut: firebaseSignOut } = await import('firebase/auth') as any;
       return firebaseSignOut(auth);
     } catch (error) {
       console.error('登出错误:', error);
@@ -71,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     const initAuthStateListener = async () => {
       try {
-        const { onAuthStateChanged } = await import('firebase/auth');
+        const { onAuthStateChanged } = await import('firebase/auth') as any;
         unsubscribe = onAuthStateChanged(auth, (user: any) => {
           setCurrentUser(user || null);
           setLoading(false);
@@ -99,9 +100,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     signOut
   };
 
+  // 显示加载状态而不是空白页面
+  if (loading) {
+    return (
+      <Layout style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <Spin size="large" />
+      </Layout>
+    );
+  }
+
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
