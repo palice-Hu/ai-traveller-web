@@ -57,26 +57,44 @@ class AIService {
 
   // 调用大语言模型API生成行程
   async generateItinerary(request: ItineraryRequest): Promise<ItineraryResponse> {
-    // 为了调试高德地图，暂时使用静态数据而不是调用大模型API
-    console.log('大模型API调用已被注释，使用静态数据');
+    // 检查API密钥和应用ID是否配置
+    if (!this.apiKey) {
+      console.warn('未配置阿里云百炼平台API密钥，使用静态数据');
+      // 模拟API调用延迟
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 返回静态数据用于地图调试
+      return {
+        id: 'itinerary_' + Date.now(),
+        title: `${request.destination}旅行计划`,
+        destination: request.destination,
+        startDate: request.startDate,
+        endDate: request.endDate,
+        budget: request.budget,
+        estimatedCost: Math.round(request.budget * 0.8),
+        itinerary: this.generateStaticItinerary()
+      };
+    }
     
-    // 模拟API调用延迟
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // 返回静态数据用于地图调试
-    return {
-      id: 'itinerary_' + Date.now(),
-      title: `${request.destination}旅行计划`,
-      destination: request.destination,
-      startDate: request.startDate,
-      endDate: request.endDate,
-      budget: request.budget,
-      estimatedCost: Math.round(request.budget * 0.8),
-      itinerary: this.generateStaticItinerary()
-    };
-    
-    /*
-    // 原始的大模型API调用代码（注释掉）
+    if (!this.appId) {
+      console.warn('未配置阿里云百炼平台应用ID，使用静态数据');
+      // 模拟API调用延迟
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // 返回静态数据用于地图调试
+      return {
+        id: 'itinerary_' + Date.now(),
+        title: `${request.destination}旅行计划`,
+        destination: request.destination,
+        startDate: request.startDate,
+        endDate: request.endDate,
+        budget: request.budget,
+        estimatedCost: Math.round(request.budget * 0.8),
+        itinerary: this.generateStaticItinerary()
+      };
+    }
+
+    // 调用大语言模型API生成行程
     try {
       // 构造提示词
       const prompt = this.buildPrompt(request);
@@ -141,7 +159,6 @@ class AIService {
         itinerary: this.generateFallbackItinerary(request)
       };
     }
-    */
   }
 
   // 生成静态行程数据用于地图调试

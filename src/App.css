@@ -3,6 +3,7 @@
   margin: 0;
   padding: 0;
   text-align: center;
+  height: 100%;
 }
 
 .logo {
@@ -42,13 +43,48 @@
 }
 
 .site-layout-content {
-  min-height: calc(100vh - 128px); /* 减去header和footer的高度 */
+  background: #fff;
+  padding: 24px;
+  margin: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0;
+  height: 100%;
+}
+
+@media (max-width: 768px) {
+  .site-layout-content {
+    padding: 12px;
+  }
+}
+
+/* 全局样式调整，使地图成为焦点 */
+#map-container {
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+/* 地图卡片body铺满 */
+.ant-card-body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 24px !important;
+}
+
+/* 抽屉样式优化 */
+.ant-drawer-body {
+  padding: 12px;
 }
 
 /* 确保布局能够铺满整个屏幕 */
 .layout {
   min-height: 100vh;
+}
+
+/* 确保html和body元素铺满整个屏幕 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
