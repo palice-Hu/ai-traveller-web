@@ -17,8 +17,8 @@ function App() {
     <Layout className="layout" style={{ minHeight: '100vh' }}>
       <Header current={current} onClick={handleMenuClick} />
       
-      <Content style={{ padding: '50px' }}>
-        <div className="site-layout-content" style={{ background: '#fff', padding: 24, minHeight: 280 }}>
+      <Content style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <div className="site-layout-content" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Outlet />
         </div>
       </Content>

@@ -3,11 +3,18 @@ import { createRoot } from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import './index.css'
 import routes from './routes'
+import { AuthProvider } from './contexts/AuthContext'
+import { ConfigProvider } from 'antd'
+import zhCN from 'antd/locale/zh_CN';
 
 const router = createBrowserRouter(routes)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <ConfigProvider locale={zhCN}>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </ConfigProvider>
   </StrictMode>,
 )

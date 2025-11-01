@@ -1,7 +1,7 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
   text-align: center;
 }
 
@@ -39,4 +39,16 @@
 
 .read-the-docs {
   color: #888;
+}
+
+.site-layout-content {
+  min-height: calc(100vh - 128px); /* 减去header和footer的高度 */
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+/* 确保布局能够铺满整个屏幕 */
+.layout {
+  min-height: 100vh;
 }
