@@ -4,34 +4,14 @@
 // VITE_IFLYTEK_API_KEY: 科大讯飞API密钥
 // VITE_IFLYTEK_SECRET_KEY: 科大讯飞密钥
 
-// 暂时注释掉语音服务实现，以便优先调试大模型API
-/*
 class SpeechService {
   private isRecording = false;
   private recognition: any = null;
 
   // 检查浏览器是否支持语音识别
   isSupported(): boolean {
-    // 在实际应用中，这里会检查科大讯飞SDK是否可用
-    // 由于科大讯飞SDK需要在浏览器环境中动态加载，这里简单返回true
-    return true;
-  }
-
-  // 初始化科大讯飞SDK
-  private async initIFlytekSDK(): Promise<any> {
-    // 在实际项目中，这里需要加载科大讯飞的Web SDK
-    // 例如通过动态插入script标签加载SDK
-    // 由于SDK集成较为复杂，这里暂时使用浏览器原生API进行演示
-    
-    return new Promise((resolve, reject) => {
-      if ((window as any).webkitSpeechRecognition) {
-        resolve((window as any).webkitSpeechRecognition);
-      } else if ((window as any).SpeechRecognition) {
-        resolve((window as any).SpeechRecognition);
-      } else {
-        reject(new Error('浏览器不支持语音识别功能'));
-      }
-    });
+    // 检查浏览器是否支持语音识别
+    return !!(window as any).webkitSpeechRecognition || !!(window as any).SpeechRecognition;
   }
 
   // 开始录音
@@ -42,9 +22,7 @@ class SpeechService {
     }
 
     try {
-      // 在实际应用中，这里会调用科大讯飞SDK开始录音
-      // 暂时使用浏览器原生的语音识别API进行模拟
-      
+      // 使用浏览器原生的语音识别API
       if ((window as any).webkitSpeechRecognition) {
         this.recognition = new (window as any).webkitSpeechRecognition();
       } else if ((window as any).SpeechRecognition) {
@@ -58,7 +36,9 @@ class SpeechService {
       this.recognition.interimResults = false;
 
       this.recognition.onresult = (event: any) => {
+        console.log('语音识别结果:', event);
         const transcript = event.results[0][0].transcript;
+        console.log('识别文本:', transcript);
         onResult(transcript);
         this.isRecording = false;
       };
@@ -70,7 +50,12 @@ class SpeechService {
       };
 
       this.recognition.onend = () => {
+        console.log('语音识别结束');
         this.isRecording = false;
+      };
+
+      this.recognition.onstart = () => {
+        console.log('语音识别开始');
       };
 
       this.recognition.start();
@@ -90,43 +75,7 @@ class SpeechService {
       console.log('停止录音');
     }
   }
-
-  // 获取语音输入的文本结果（实际项目中会通过科大讯飞SDK获取）
-  getSpeechResult(): Promise<string> {
-    // 在实际项目中，这里会通过科大讯飞SDK获取识别结果
-    return new Promise((resolve) => {
-      // 模拟异步获取结果
-      setTimeout(() => {
-        const mockResults = [
-          "我想去北京旅行，时间是下个月，预算5000元",
-          "计划去上海迪士尼游玩，时间三天两夜，和家人一起",
-          "需要一个关于杭州西湖的旅游计划，喜欢自然景观和美食",
-          "我要去成都吃火锅，顺便游览市区景点，预算3000元"
-        ];
-        
-        const randomIndex = Math.floor(Math.random() * mockResults.length);
-        resolve(mockResults[randomIndex]);
-      }, 1000);
-    });
-  }
-}
-*/
-
-// 简化版本的语音服务，用于调试大模型API
-class SpeechService {
-  isSupported(): boolean {
-    return false;
-  }
-
-  startRecording(onResult: (text: string) => void, onError?: (error: string) => void): void {
-    console.log('语音识别功能已被注释，无法启动录音');
-    onError?.('语音识别功能暂不可用');
-  }
-
-  stopRecording(): void {
-    console.log('语音识别功能已被注释，无法停止录音');
-  }
-
+  
   getMockSpeechResult(): string {
     const mockResults = [
       "我想去北京旅行，时间是下个月，预算5000元",

@@ -23,50 +23,109 @@ const Planner: React.FC = () => {
   const [streamContent, setStreamContent] = useState('');
   const [showViewDetails, setShowViewDetails] = useState(false); // 控制是否显示"查看详细计划"按钮
   const [accumulatedText, setAccumulatedText] = useState(''); // 保存累积的文本
+  const [voiceRecognitionText, setVoiceRecognitionText] = useState(''); // 保存语音识别结果
   const listeningTimeout = useRef<any>(null);
 
   const startListening = () => {
     if (!speechService.isSupported()) {
       message.error('当前浏览器不支持语音识别功能');
+      console.log('当前浏览器不支持语音识别功能');
       return;
     }
 
     setIsListening(true);
+    console.log('开始语音识别');
     
     // 设置5秒后自动停止录音
     if (listeningTimeout.current) {
       clearTimeout(listeningTimeout.current);
     }
     listeningTimeout.current = setTimeout(() => {
+      console.log('自动停止录音');
       stopListening();
     }, 5000);
 
     speechService.startRecording(
       (text) => {
         // 成功识别语音
-        message.success('语音识别成功');
-        // 这里可以将识别结果填充到表单中
-        // 为了演示，我们使用模拟数据
-        const mockText = speechService.getMockSpeechResult();
-        message.info(`识别结果: ${mockText}`);
+        console.log('语音识别成功，结果：', text);
+        message.success(`语音识别成功: ${text}`);
+        
+        // 解析识别结果并自动填入表单
+        parseAndFillForm(text);
+        
         stopListening();
       },
       (error) => {
         // 识别出错
+        console.error('语音识别失败:', error);
         message.error(`语音识别失败: ${error}`);
         stopListening();
       }
     );
   };
 
+  // 解析语音识别结果并自动填入表单
+  const parseAndFillForm = (text: string) => {
+    // 将文本转换为小写以便匹配
+    const lowerText = text.toLowerCase();
+    
+    // 解析目的地
+    const destinationKeywords = ['去', '到', '旅行', '旅游', '玩'];
+    let destination = '';
+    
+    // 简单的关键词匹配逻辑
+    if (lowerText.includes('北京')) destination = '北京';
+    else if (lowerText.includes('上海')) destination = '上海';
+    else if (lowerText.includes('杭州')) destination = '杭州';
+    else if (lowerText.includes('成都')) destination = '成都';
+    else if (lowerText.includes('西安')) destination = '西安';
+    else if (lowerText.includes('广州')) destination = '广州';
+    else if (lowerText.includes('深圳')) destination = '深圳';
+    else if (lowerText.includes('厦门')) destination = '厦门';
+    else if (lowerText.includes('青岛')) destination = '青岛';
+    else if (lowerText.includes('大连')) destination = '大连';
+    else if (lowerText.includes('三亚')) destination = '三亚';
+    
+    // 解析预算
+    let budget = 0;
+    const budgetMatch = text.match(/(\d+)(?:元|块|块钱)?/);
+    if (budgetMatch) {
+      budget = parseInt(budgetMatch[1]);
+    }
+    
+    // 解析出行人数
+    let travelers = 1;
+    if (text.includes('一个人') || text.includes('我自己') || text.includes('我一人')) {
+      travelers = 1;
+    } else if (text.includes('两个人') || text.includes('两人') || text.includes('我和')) {
+      travelers = 2;
+    } else if (text.includes('三个人') || text.includes('三人')) {
+      travelers = 3;
+    } else if (text.includes('四个人') || text.includes('四人')) {
+      travelers = 4;
+    }
+    
+    // 解析特殊要求
+    const specialRequests = text;
+    
+    // 填入表单
+    const formValues: any = {};
+    if (destination) formValues.destination = destination;
+    if (budget > 0) formValues.budget = budget;
+    if (travelers > 0) formValues.travelers = travelers;
+    formValues.specialRequests = specialRequests;
+    
+    form.setFieldsValue(formValues);
+    
+    message.info('已自动填入表单信息');
+  };
+
   const stopListening = () => {
     setIsListening(false);
     speechService.stopRecording();
     
-    if (listeningTimeout.current) {
-      clearTimeout(listeningTimeout.current);
-      listeningTimeout.current = null;
-    }
+    // 移除了定时器清理逻辑，因为不再使用自动停止功能
   };
 
   // 处理单个活动项
@@ -303,6 +362,44 @@ const Planner: React.FC = () => {
     }
   };
 
+  const handleVoiceRecognition = () => {
+    if (!speechService.isSupported()) {
+      message.error('当前浏览器不支持语音识别功能');
+      return;
+    }
+
+    setIsListening(true);
+    
+    speechService.startRecording(
+      (text) => {
+        // 成功识别语音
+        console.log('语音识别成功，结果：', text);
+        message.success(`语音识别成功: ${text}`);
+        
+        // 将识别结果保存到状态中
+        setVoiceRecognitionText(text);
+        
+        // 不再自动停止录音，让用户手动控制
+        // stopListening();
+      },
+      (error) => {
+        // 识别出错
+        console.error('语音识别失败:', error);
+        message.error(`语音识别失败: ${error}`);
+        stopListening();
+      }
+    );
+  };
+  
+  // 将语音识别结果填充到表单
+  const fillFormWithVoiceText = () => {
+    if (voiceRecognitionText) {
+      parseAndFillForm(voiceRecognitionText);
+    } else {
+      message.info('请先进行语音识别');
+    }
+  };
+
   // 清理定时器
   React.useEffect(() => {
     return () => {
@@ -412,13 +509,25 @@ const Planner: React.FC = () => {
                   onChange={setUseVoiceInput}
                 />
                 {useVoiceInput && (
-                  <Button 
-                    icon={isListening ? <AudioFilled /> : <AudioOutlined />} 
-                    onClick={isListening ? stopListening : startListening}
-                    type={isListening ? 'primary' : 'default'}
-                  >
-                    {isListening ? '停止录音' : '开始录音'}
-                  </Button>
+                  <>
+                    <Button 
+                      icon={isListening ? <AudioFilled /> : <AudioOutlined />} 
+                      onClick={isListening ? stopListening : handleVoiceRecognition}
+                      type={isListening ? 'primary' : 'default'}
+                    >
+                      {isListening ? '停止录音' : '语音识别'}
+                    </Button>
+                    <Input.TextArea
+                      value={voiceRecognitionText}
+                      onChange={(e) => setVoiceRecognitionText(e.target.value)}
+                      placeholder="语音识别结果"
+                      style={{ flex: 1 }}
+                      autoSize={{ minRows: 3, maxRows: 6 }}
+                    />
+                    <Button onClick={fillFormWithVoiceText}>
+                      填充表单
+                    </Button>
+                  </>
                 )}
               </div>
             </Space>
