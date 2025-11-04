@@ -365,6 +365,14 @@ const Planner: React.FC = () => {
   const handleVoiceRecognition = () => {
     if (!speechService.isSupported()) {
       message.error('当前浏览器不支持语音识别功能');
+      console.log('当前浏览器不支持语音识别功能');
+      return;
+    }
+
+    // 检查是否在安全上下文中运行
+    if (!window.isSecureContext) {
+      message.error('语音识别需要在安全上下文（HTTPS 或 localhost）中运行');
+      console.log('语音识别需要在安全上下文（HTTPS 或 localhost）中运行');
       return;
     }
 
@@ -386,6 +394,9 @@ const Planner: React.FC = () => {
         // 识别出错
         console.error('语音识别失败:', error);
         message.error(`语音识别失败: ${error}`);
+        if (error === 'not-allowed') {
+          message.info('请确保您已授予麦克风权限，并在安全环境（HTTPS 或 localhost）下运行应用');
+        }
         stopListening();
       }
     );

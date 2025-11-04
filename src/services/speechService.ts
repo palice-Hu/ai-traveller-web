@@ -22,6 +22,11 @@ class SpeechService {
     }
 
     try {
+      // 检查是否在安全上下文中运行（HTTPS 或 localhost）
+      if (!window.isSecureContext) {
+        throw new Error('语音识别需要在安全上下文（HTTPS 或 localhost）中运行');
+      }
+
       // 使用浏览器原生的语音识别API
       if ((window as any).webkitSpeechRecognition) {
         this.recognition = new (window as any).webkitSpeechRecognition();
