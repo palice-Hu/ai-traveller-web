@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Typography, Button, Space } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -42,7 +42,7 @@ const Home: React.FC = () => {
               <Button type="primary" size="large" style={{ width: '100%' }} onClick={() => navigate('/planner')}>
                 开始规划旅行
               </Button>
-              <Button size="large" style={{ width: '100%' }} onClick={() => navigate('/profile')}>
+              <Button size="large" style={{ width: '100%' }} onClick={() => navigate('/my-itineraries')}>
                 查看我的行程
               </Button>
             </Space>

@@ -1,14 +1,16 @@
 import React, { useState, useRef } from 'react';
-import { Form, Input, InputNumber, DatePicker, Select, Button, Card, Typography, Space, message, Switch, Spin } from 'antd';
+import { Form, Input, InputNumber, DatePicker, Select, Button, Card, Typography, Space, message, Switch, Spin, Modal, Input as AntdInput } from 'antd';
 import { AudioOutlined, AudioFilled } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import aiService, { type ItineraryRequest, type ItineraryResponse } from '../services/aiService';
 import speechService from '../services/speechService';
+import storageService from '../services/storageService';
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 const { Option } = Select;
+const { TextArea } = AntdInput;
 
 const Planner: React.FC = () => {
   const [form] = Form.useForm();
@@ -17,6 +19,10 @@ const Planner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [useVoiceInput, setUseVoiceInput] = useState(false);
+  const [streamVisible, setStreamVisible] = useState(false);
+  const [streamContent, setStreamContent] = useState('');
+  const [showViewDetails, setShowViewDetails] = useState(false); // 控制是否显示"查看详细计划"按钮
+  const [accumulatedText, setAccumulatedText] = useState(''); // 保存累积的文本
   const listeningTimeout = useRef<any>(null);
 
   const startListening = () => {
@@ -63,8 +69,44 @@ const Planner: React.FC = () => {
     }
   };
 
+  // 处理单个活动项
+  const formatActivity = (activitySection: string): string => {
+    const timeMatch = activitySection.match(/"time"\s*:\s*"([^"]+)"/);
+    const titleMatch = activitySection.match(/"title"\s*:\s*"([^"]+)"/);
+    const descriptionMatch = activitySection.match(/"description"\s*:\s*"([^"]+)"/);
+    const locationMatch = activitySection.match(/"location"\s*:\s*"([^"]+)"/);
+    const durationMatch = activitySection.match(/"duration"\s*:\s*"([^"]+)"/);
+    const costMatch = activitySection.match(/"cost"\s*:\s*(\d+)/);
+    
+    if (timeMatch && titleMatch && descriptionMatch && locationMatch && durationMatch) {
+      const time = timeMatch[1];
+      const title = titleMatch[1];
+      const description = descriptionMatch[1];
+      const location = locationMatch[1];
+      const duration = durationMatch[1];
+      const cost = costMatch ? costMatch[1] : undefined;
+      
+      let activityText = `  ${time} ${title}\n`;
+      activityText += `    ${description}\n`;
+      activityText += `    地点: ${location} 时长: ${duration}\n`;
+      if (cost !== undefined) {
+        activityText += `    费用: ¥${cost}\n`;
+      }
+      activityText += '\n';
+      
+      return activityText;
+    }
+    
+    return '';
+  };
+
   const onFinish = async (values: any) => {
+    console.log('表单提交，values:', values);
     setLoading(true);
+    setStreamContent('');
+    setStreamVisible(true);
+    setAccumulatedText(''); // 重置累积文本
+    setShowViewDetails(false); // 初始时不显示"查看详细计划"按钮
     try {
       const [startDate, endDate] = values.dateRange;
       
@@ -78,19 +120,186 @@ const Planner: React.FC = () => {
         specialRequests: values.specialRequests
       };
       
-      // 调用AI服务生成行程
-      const response: ItineraryResponse = await aiService.generateItinerary(request);
+      console.log('准备调用AI服务生成行程，request:', request);
+      
+      let accumulatedTextLocal = '';
+      let displayContent = ''; // 显示内容
+      
+      // 调用AI服务生成行程（流式）
+      await aiService.generateItineraryStream(
+        request,
+        (chunk) => {
+          console.log('收到AI流式响应chunk:', chunk);
+          accumulatedTextLocal += chunk;
+          setAccumulatedText(accumulatedTextLocal); // 更新状态中的累积文本
+          
+          try {
+            // 按照指定逻辑重构：循环（匹配到day，输出value，然后循环匹配title直至匹配到下一个day）
+            let newContent = '';
+            
+            // 提取estimatedCost（如果存在）
+            const costMatch = accumulatedTextLocal.match(/"estimatedCost"\s*:\s*(\d+)/);
+            if (costMatch) {
+              newContent += `预估费用: ¥${costMatch[1]}\n\n`;
+            }
+            
+            // 循环匹配day和title
+            const dayPattern = /"day"\s*:\s*(\d+)[\s\S]*?"date"\s*:\s*"([^"]+)"/g;
+            let dayMatch;
+            let lastIndex = 0;
+            
+            while ((dayMatch = dayPattern.exec(accumulatedTextLocal)) !== null) {
+              const day = dayMatch[1];
+              const date = dayMatch[2];
+              
+              // 输出day信息
+              newContent += `第${day}天 (${date})\n`;
+              
+              // 更新lastIndex为当前day匹配的结束位置
+              lastIndex = dayMatch.index + dayMatch[0].length;
+              
+              // 查找下一个day的位置
+              const nextDayPattern = /"day"\s*:\s*(\d+)[\s\S]*?"date"\s*:\s*"([^"]+)"/g;
+              nextDayPattern.lastIndex = lastIndex;
+              const nextDayMatch = nextDayPattern.exec(accumulatedTextLocal);
+              const nextDayIndex = nextDayMatch ? nextDayMatch.index : accumulatedTextLocal.length;
+              
+              // 在当前day和下一个day之间循环匹配title
+              const dayContent = accumulatedTextLocal.substring(lastIndex, nextDayIndex);
+              const titlePattern = /"title"\s*:\s*"([^"]+)"/g;
+              let titleMatch;
+              let hasTitles = false;
+              
+              while ((titleMatch = titlePattern.exec(dayContent)) !== null) {
+                const title = titleMatch[1];
+                newContent += `  - ${title}\n`;
+                hasTitles = true;
+              }
+              
+              // 如果没有title，显示正在生成提示
+              if (!hasTitles) {
+                newContent += '  正在生成活动安排...\n';
+              }
+              
+              newContent += '\n';
+            }
+            
+            // 如果没有任何内容，显示正在生成提示
+            if (!newContent.trim()) {
+              newContent = '正在生成行程计划...';
+            }
+            
+            displayContent = newContent;
+            setStreamContent(newContent);
+          } catch (error) {
+            // 出错时保持当前内容
+            console.error('处理流式内容出错:', error);
+            setStreamContent(displayContent || '正在生成行程计划...');
+          }
+        }
+      );
       
       // 显示成功消息
+      console.log('行程规划生成完成');
       message.success('行程规划生成成功！');
       
-      // 跳转到行程详情页面，并传递行程数据
-      navigate('/itinerary', { state: { itinerary: response } });
+      // 显示"查看详细计划"按钮
+      setShowViewDetails(true);
     } catch (error) {
       console.error('创建行程失败:', error);
       message.error('行程规划生成失败，请重试');
+      setStreamContent('生成失败，请重试');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 查看详细计划
+  const handleViewDetails = async () => {
+    console.log('点击了查看详细计划按钮');
+    setStreamVisible(false);
+    
+    // 从累积的文本中提取行程数据并传递给Itinerary页面
+    try {
+      console.log('开始处理行程数据');
+      // 清理文本，移除可能的额外字符
+      let cleanText = accumulatedText.trim();
+      console.log('清理后的文本:', cleanText);
+      
+      // 尝试直接解析整个文本
+      let jsonData = null;
+      try {
+        jsonData = JSON.parse(cleanText);
+        console.log('成功直接解析JSON数据:', jsonData);
+      } catch (e) {
+        console.log('直接解析JSON失败，尝试提取JSON部分');
+        // 如果直接解析失败，尝试提取JSON部分
+        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            jsonData = JSON.parse(jsonMatch[0]);
+            console.log('成功提取并解析JSON数据:', jsonData);
+          } catch (parseError) {
+            console.error('JSON解析失败:', parseError);
+          }
+        }
+      }
+      
+      // 构造基本行程数据
+      console.log('开始构造基本行程数据');
+      const destination = form.getFieldValue('destination');
+      const dateRange = form.getFieldValue('dateRange');
+      const budget = form.getFieldValue('budget');
+      
+      console.log('表单数据 - 目的地:', destination, '日期范围:', dateRange, '预算:', budget);
+      
+      // 安全地处理日期范围
+      let startDate = '';
+      let endDate = '';
+      if (dateRange && dateRange[0] && dateRange[1]) {
+        // 检查是否是Moment对象
+        if (typeof dateRange[0].format === 'function') {
+          startDate = dateRange[0].format('YYYY-MM-DD');
+        } else {
+          startDate = String(dateRange[0]);
+        }
+        
+        if (typeof dateRange[1].format === 'function') {
+          endDate = dateRange[1].format('YYYY-MM-DD');
+        } else {
+          endDate = String(dateRange[1]);
+        }
+      }
+      
+      const itineraryData: any = {
+        id: 'itinerary_' + Date.now(),
+        title: `${destination || '我的'}旅行计划`,
+        destination: destination || '',
+        startDate: startDate,
+        endDate: endDate,
+        budget: budget || 0,
+        estimatedCost: 0,
+        itinerary: []
+      };
+      
+      // 如果成功解析JSON数据，更新行程数据
+      if (jsonData) {
+        console.log('使用解析的JSON数据更新行程');
+        itineraryData.estimatedCost = jsonData.estimatedCost || budget || 0;
+        itineraryData.itinerary = jsonData.itinerary || [];
+      }
+      
+      console.log('最终行程数据:', itineraryData);
+      
+      console.log('准备跳转到行程详情页面');
+      navigate('/itinerary', { state: { itinerary: itineraryData } });
+      console.log('跳转完成');
+    } catch (error) {
+      console.error('处理行程数据失败:', error);
+      message.error('处理行程数据失败');
+      // 出错时直接跳转（将使用Itinerary页面的默认数据）
+      console.log('出现错误，仍然尝试跳转到行程详情页面');
+      navigate('/itinerary');
     }
   };
 
@@ -237,6 +446,43 @@ const Planner: React.FC = () => {
           </Form.Item>
         </Form>
       </Card>
+
+      {/* 流式输出模态框 */}
+      <Modal
+        title="行程计划生成中"
+        open={streamVisible}
+        onCancel={() => {
+          setStreamVisible(false);
+          setLoading(false);
+        }}
+        footer={showViewDetails ? [
+          <Button key="back" onClick={() => setStreamVisible(false)}>
+            关闭
+          </Button>,
+          <Button key="submit" type="primary" onClick={handleViewDetails}>
+            查看详细计划
+          </Button>
+        ] : null}
+        width={800}
+        maskClosable={false}
+      >
+        <div style={{ marginBottom: 16 }}>
+          {!showViewDetails && <Spin />} 
+          <span style={{ marginLeft: 8 }}>
+            {showViewDetails ? '行程计划生成完成！' : 'AI正在生成您的行程计划...'}
+          </span>
+        </div>
+        <TextArea
+          rows={15}
+          value={streamContent}
+          readOnly
+          style={{ 
+            fontFamily: 'monospace',
+            fontSize: '14px',
+            backgroundColor: '#f5f5f5'
+          }}
+        />
+      </Modal>
     </div>
   );
 };

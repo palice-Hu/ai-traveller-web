@@ -55,6 +55,95 @@ class AIService {
     }
   }
 
+  // 调用大语言模型API生成行程（流式输出版本）
+  async generateItineraryStream(request: ItineraryRequest, onChunkReceived: (chunk: string) => void): Promise<void> {
+    // 检查API密钥和应用ID是否配置
+    if (!this.apiKey) {
+      console.warn('未配置阿里云百炼平台API密钥，无法使用流式输出');
+      throw new Error('未配置API密钥');
+    }
+    
+    if (!this.appId) {
+      console.warn('未配置阿里云百炼平台应用ID，无法使用流式输出');
+      throw new Error('未配置应用ID');
+    }
+
+    // 调用大语言模型API生成行程
+    try {
+      // 构造提示词
+      const prompt = this.buildPrompt(request);
+      
+      // 调用阿里云百炼平台API（流式）
+      const response = await fetch(`https://dashscope.aliyuncs.com/api/v1/apps/${this.appId}/completion`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+          'X-DashScope-SSE': 'enable' // 启用流式输出
+        },
+        body: JSON.stringify({
+          input: {
+            prompt: prompt
+          },
+          parameters: {
+            temperature: 0.7,
+            max_tokens: 2000,
+            incremental_output: true // 启用增量输出
+          },
+          debug: {}
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API调用失败: ${response.status} ${response.statusText}`);
+      }
+
+      if (!response.body) {
+        throw new Error('响应体为空');
+      }
+
+      // 处理流式响应
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            break;
+          }
+          
+          // 解码接收到的数据
+          const chunk = decoder.decode(value, { stream: true });
+          
+          // 处理SSE数据格式
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data:')) {
+              const data = line.slice(5).trim(); // 移除"data:"前缀
+              if (data) {
+                try {
+                  const parsedData = JSON.parse(data);
+                  // 只传递text字段内容
+                  const text = parsedData.output?.text || '';
+                  onChunkReceived(text);
+                } catch (e) {
+                  // 如果不是有效的JSON，记录但不传递
+                  console.debug('无法解析JSON数据:', line);
+                }
+              }
+            }
+          }
+        }
+      } finally {
+        reader.releaseLock();
+      }
+    } catch (error) {
+      console.error('调用大语言模型API失败:', error);
+      throw error;
+    }
+  }
+
   // 调用大语言模型API生成行程
   async generateItinerary(request: ItineraryRequest): Promise<ItineraryResponse> {
     // 检查API密钥和应用ID是否配置

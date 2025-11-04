@@ -5,6 +5,7 @@ import Login from "../pages/Login";
 import Register from "../pages/Register";
 import Planner from "../pages/Planner";
 import Itinerary from "../pages/Itinerary";
+import MyItineraries from "../pages/MyItineraries";
 import PrivateRoute from "../components/PrivateRoute";
 
 const routes = [
@@ -33,6 +34,14 @@ const routes = [
         element: (
           <PrivateRoute>
             <Itinerary />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/my-itineraries",
+        element: (
+          <PrivateRoute>
+            <MyItineraries />
           </PrivateRoute>
         ),
       },
